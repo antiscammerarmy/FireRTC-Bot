@@ -18,3 +18,25 @@ C:\Users\donut\Documents\GitHub\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTC
 C:\Users\donut\Documents\GitHub\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.csproj.GenerateResource.Cache
 C:\Users\donut\Documents\GitHub\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.exe
 C:\Users\donut\Documents\GitHub\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.pdb
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\FireRTCSpammer.exe.config
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\FireRTCSpammer.exe
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\FireRTCSpammer.pdb
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\DSharpPlus.dll
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\DSharpPlus.WebSocket.WebSocket4Net.dll
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\INIAddon.dll
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\INIFileParser.dll
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\WebDriver.dll
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\WebSocket4Net.dll
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\DSharpPlus.xml
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\DSharpPlus.WebSocket.WebSocket4Net.xml
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\INIAddon.pdb
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\INIFileParser.xml
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\bin\Debug\WebDriver.xml
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.csprojResolveAssemblyReference.cache
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCBot.MainForm.resources
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.Properties.Resources.resources
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.csproj.GenerateResource.Cache
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.exe
+C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.pdb
