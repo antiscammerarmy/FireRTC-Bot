@@ -73,7 +73,7 @@
 			this.txt_Username.Name = "txt_Username";
 			this.txt_Username.Size = new System.Drawing.Size(259, 22);
 			this.txt_Username.TabIndex = 11;
-			this.txt_Username.Text = "Username";
+			this.txt_Username.Text = "Username/Email";
 			// 
 			// pictureBox1
 			// 

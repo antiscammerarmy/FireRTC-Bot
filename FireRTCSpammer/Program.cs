@@ -14,6 +14,7 @@ namespace FireRTCBot
 	
     public partial class Program
     {
+		#region FireRTC
 		public static ChromeDriver cd;
 		//Hide console stuff.
 
@@ -29,6 +30,18 @@ namespace FireRTCBot
 
         //Have we told the user to press 'accept' on the microphone pop-up?
         private static bool hasAuthenticated = false;
+		#endregion
+		//Cross-Calling System
+		public class CallObject
+		{
+			public MessageCreateEventArgs e;
+			public DiscordMessage msg;
+			public DiscordEmbed embed;
+			public DateTime _start;
+			public string number;
+		}
+		public static CallObject CurrentCall;
+		public static List<CallObject> CallQueue = new List<CallObject>();
 		private static string GenerateReport(Exception ex) => $"Source: {ex.Source}\nMessage: {ex.Message}\nHelpLink: {ex.HelpLink}\nStack Trace =>\n{ex.StackTrace}\n<=\n";
 		public static void Crash(Exception ex, string Application)
 		{
@@ -42,14 +55,7 @@ namespace FireRTCBot
 		}
 		static void Main(string[] args)
 		{
-			try
-			{
-				new Program().RunAsync().GetAwaiter().GetResult();
-			}
-			catch (Exception ex)
-			{
-				Crash(ex, "Main");
-			}
+			new Program().RunAsync().GetAwaiter().GetResult();
         }
 		public static void InitFireRTC()
 		{
@@ -62,11 +68,13 @@ namespace FireRTCBot
 			tryAuthenticationAgain:
 			cd.Manage().Window.Maximize();
 			//Sign in..
+			#region Auto-Loing
 			cd.Url = "https://phone.firertc.com/auth/sign_in";
 			cd.FindElement(By.Id("user_email")).SendKeys(email);
 			cd.FindElement(By.Id("user_password")).SendKeys(password);
 			cd.FindElement(By.Name("commit")).Click();
 			Thread.Sleep(3000);
+#endregion
 			//After the user has attempted authentication, if the e-mail field to login is still visible, assume we failed the authentication process.
 			try
 			{
@@ -77,17 +85,52 @@ namespace FireRTCBot
 				ms.ShowDialog();
 				goto tryAuthenticationAgain;
 			}
-			catch { } //Good, the user authenticated successfully.
-			//We will go here after every call completion.
+			catch { }
 			startSpam:
-
-			//Go to FireRTC's setting page.
+			ChangeNumber();
+			cd.Url = "https://phone.firertc.com/phone";
+			//If we haven't already told the user to 'Allow' microphone access, tell them.
+			if (!hasAuthenticated)
+			{
+				MessageBox.Show("Setup Microphone please.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				hasAuthenticated = true;
+			}
+			//Check if FireRTC unregistered itself.
+			try
+			{
+				var connectButton = cd.FindElementsByClassName("row");
+				foreach (IWebElement i in connectButton)
+				{
+					if (i.GetAttribute("innerText").Contains("Connect"))
+					{
+						i.Click();
+					}
+				}
+				Thread.Sleep(2000);
+			}
+			catch { } //Cool, FireRTC didn't unregister itself.
+			//Check if the current FireRTC account is banned.
+			try
+			{
+				cd.FindElementById("user_email");
+				MessageBox.Show("This FireRTC account has been banned.", "Banned", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				goto tryAuthenticationAgain;
+			}
+			catch { } //The account isn't banned.
+					  //Wait for FireRTC to connect.
+			try
+			{
+				cd.FindElementById("button_1"); //Check for the keypad number one. If it exists, we have connected to the phone.
+			}
+			catch { MessageBox.Show("Couldn't find keypad button!", "", MessageBoxButtons.OK, MessageBoxIcon.Error); return; }
+		}
+		public static void ChangeNumber()
+		{
 			cd.Url = "https://phone.firertc.com/settings";
-
 			//Wait a little bit and accept the alert that comes up.
 			Thread.Sleep(1000);
 			try { cd.SwitchTo().Alert().Accept(); } catch { } //This is a try-catch because the first call we go through, there will be no alert.
-			//Generate a random phone number.
+															  //Generate a random phone number.
 			Random rand = new Random();
 			List<int> randomNumbers = new List<int>();
 			string largeNumber = "";
@@ -117,49 +160,15 @@ namespace FireRTCBot
 			{
 				element.Click();
 			}
-			//Go to the phone.
 			cd.Url = "https://phone.firertc.com/phone";
-			//If we haven't already told the user to 'Allow' microphone access, tell them.
-			if (!hasAuthenticated)
-			{
-				MessageBox.Show("Please click 'Allow' on the Chrome window to allow microphone access (if it shows up), then press 'OK' here. (You will only need to do this once)", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-				hasAuthenticated = true;
-			}
-			//Check if FireRTC unregistered itself.
-			try
-			{
-				var connectButton = cd.FindElementsByClassName("row");
-				foreach (IWebElement i in connectButton)
-				{
-					if (i.GetAttribute("innerText").Contains("Connect"))
-					{
-						i.Click();
-					}
-				}
-				Thread.Sleep(2000);
-			}
-			catch { } //Cool, FireRTC didn't unregister itself.
-			//Check if the current FireRTC account is banned.
-			try
-			{
-				cd.FindElementById("user_email");
-				MessageBox.Show("This FireRTC account has been banned.", "Banned", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				goto tryAuthenticationAgain;
-			}
-			catch { } //The account isn't banned.
-					  //Wait for FireRTC to connect.
-			while (true)
-			{
-				try
-				{
-					cd.FindElementById("button_1"); //Check for the keypad number one. If it exists, we have connected to the phone.
-					break;
-				} catch
-				{ }
-			}
 		}
 		public static CallResult Call(string number)
 		{
+			try
+			{
+				cd.FindElementById("button_1"); //Check for the keypad number one. If it exists, we have connected to the phone.
+			}
+			catch { return CallResult.FailNotOnline; }
 			number = number.Replace("+","");
 			number = number.Replace("-", "");
 			number = number.Replace(" ", "");
@@ -171,20 +180,21 @@ namespace FireRTCBot
 
 			//Call the victim!
 			var d = cd.FindElements(By.ClassName("btn"));
-			CallResult result = CallResult.Fail;
 			foreach (IWebElement e in d)
 			{
 				if (e.GetAttribute("data-action") == "call")
 				{
 					e.Click();
-					result = CallResult.Calling;
+					return CallResult.Calling;
 				}
 			}
-			return result;
+			return CallResult.Fail;
+
 		}
 		public enum CallResult
 		{
 			Fail,
+			FailNotOnline,
 			Calling
 		}
 
@@ -192,7 +202,7 @@ namespace FireRTCBot
 		public static DiscordClient Client;
 		public async Task RunAsync()
 		{
-			Console.Title = Config.BotName;
+			Config.Set();
 
 			#region Init
 			Log(LogType.Normal, "Started", Config.BotName);
@@ -228,6 +238,60 @@ namespace FireRTCBot
 			Log(LogType.Normal, "Connected", Config.BotName);
 			await Client.UpdateStatusAsync(user_status: UserStatus.Online);
 			#endregion
+			while (true)
+			{
+				call:
+				while (CurrentCall == null) {}
+				#region MyRegion
+				string embedstatus = "Please wait...";
+				string statusBox = Program.cd.FindElementByClassName("status").Text.ToLower();
+				int status = 0;
+				bool callButtonVisible = false;
+				foreach (IWebElement e2 in Program.cd.FindElements(By.ClassName("btn")))
+				{
+					if (e2.GetAttribute("data-action") == "call")
+					{
+						callButtonVisible = true;
+						break;
+					}
+				}
+
+				bool hangup = (statusBox.Contains("is online") || callButtonVisible);
+				#endregion
+				if (hangup)
+				{
+					embedstatus = "Hang Up";
+					CurrentCall.embed.Color = 0xf77d65;
+				}
+				else if (statusBox.Contains("speaking"))
+				{
+					embedstatus = "Talking";
+					CurrentCall.embed.Color = 0x00FF00;
+				}
+				else
+				{
+					embedstatus = "Unknown...";
+					CurrentCall.embed.Color = 0x333333;
+				}
+				TimeSpan elapsed = DateTime.Now - CurrentCall._start;
+				CurrentCall.embed.Description = $"**Status:** {embedstatus}\n**Number:** {CurrentCall.number}\n**Elapsed Time:** {elapsed.Minutes.ToString().PadLeft(2)}:{elapsed.Seconds.ToString().PadLeft(2)}";
+				await CurrentCall.msg.EditAsync("", CurrentCall.embed);
+				if (hangup)
+				{
+					if (CallQueue.Count != 0)
+					{
+						CurrentCall = CallQueue[0];
+						CallQueue.Remove(CallQueue[0]);
+						await CurrentCall.e.Message.RespondAsync($"**{CallQueue.Count}** numbers in queue.");
+					}
+					else
+					{
+						CurrentCall = null;
+					}
+					goto call;
+				}
+				await Task.Delay(5000);
+			}
 			
 		}
 		public static async void Shutdown()

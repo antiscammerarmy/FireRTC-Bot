@@ -33,7 +33,7 @@ namespace FireRTCBot
 
         private void Txt_Username_GotFocus(object sender, EventArgs e)
         {
-            if (txt_Username.Text == "Username")
+            if (txt_Username.Text == "Username/Email")
             {
                 txt_Username.Text = "";
             }

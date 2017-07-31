@@ -2,6 +2,7 @@
 using DSharpPlus;
 using INIAddon;
 using IniParser.Model;
+using OpenQA.Selenium;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,41 +42,82 @@ namespace FireRTCBot
 					
 					args.RemoveAt(0);
                     #endregion
-                    if (cmd.StartsWith(Config.Trigger) && Config.Trusted.Contains(e.Author.Id))
+                    if (cmd.StartsWith(Config.Trigger))
                     {
+						if (!Config.Trusted.Contains(e.Author.Id))
+						{
+							await e.Message.RespondAsync($"⚠ {e.Message.Author.Mention} you aren't trusted. Ask Craftplacer or another trusted user to add you.");
+							return;
+						}
                         cmd = cmd.Replace(Config.Trigger, "");
 						switch (cmd)
 						{
 							default: await e.Message.RespondAsync("unknown command.");  break;
 							case "call":
-								switch (Program.Call(args[0]))
+
+								string number = Regex.Replace(args[0], "[^0-9]", "");
+								if (Program.CurrentCall != null)
+								{
+									await e.Message.RespondAsync("");
+									Program.CallQueue.Add(new Program.CallObject()
+									{
+										e = e,
+										embed = new DiscordEmbed()
+										{
+											Title = "Call",
+											Footer = new DiscordEmbedFooter() { Text = $"Called by {e.Message.Author.Username}" },
+											Color = 0xffd85b,
+											Author = new DiscordEmbedAuthor() { Name = "FireRTC", IconUrl = "https://pbs.twimg.com/profile_images/530090561030471680/pwyhK_GI_400x400.png" },
+											Description = $"**Status:** Calling\n**Number:** {args[0]}"
+										},
+										number = number,
+										msg = await e.Message.RespondAsync("", false, new DiscordEmbed() { Title = "⌛ Another Call is in progress, the number will be called directly after the slot is free." }),
+										_start = DateTime.Now,
+									});
+									return;
+								}
+								switch (Program.Call(number))
 								{
 									case Program.CallResult.Fail:
 										await e.Message.RespondAsync("Couldn't call {args[0]}, because of an unknown error.");
 										break;
+									case Program.CallResult.FailNotOnline:
+										await e.Message.RespondAsync("The FireRTC is not online.");
+										break;
 									case Program.CallResult.Calling:
-										var embed = new DiscordEmbed()
+										await Task.Delay(5000);
+										Program.CurrentCall = new Program.CallObject()
 										{
-											Title = "Call",
-											Footer = new DiscordEmbedFooter() { Text = "FireRTC", IconUrl = "https://pbs.twimg.com/profile_images/530090561030471680/pwyhK_GI_400x400.png" },
-											Color = 0x00FF00,
-											Author = new DiscordEmbedAuthor() { IconUrl = e.Author.AvatarUrl, Name = e.Author.Username },
-											Description = $"**Status:** Calling\n**Number:** {args[0]}"
-										};
-										var msg = await e.Message.RespondAsync("", false, embed);
-										while (true)
-										{
-											if (Program.cd.FindElementByClassName("status").Text.Contains("is online"))
+											e = e,
+											embed = new DiscordEmbed()
 											{
-												embed.Description = $"**Status:** Hang Up\n**Number:** {args[0]}";
-												embed.Color = 0xFF0000;
-												await msg.EditAsync("", embed);
-											}
-										}
+												Title = "Call",
+												Footer = new DiscordEmbedFooter() { Text = $"Called by {e.Message.Author.Username}" },
+												Color = 0xffd85b,
+												Author = new DiscordEmbedAuthor() { Name = "FireRTC", IconUrl = "https://pbs.twimg.com/profile_images/530090561030471680/pwyhK_GI_400x400.png" },
+												Description = $"**Status:** Calling\n**Number:** {args[0]}"
+											},
+											number = number,
+											msg = await e.Message.RespondAsync("", false, new DiscordEmbed() { Title = "Please wait..." }),
+											_start = DateTime.Now,
+										};
 										break;
 								} break;
-							case "hangup": break;
-							case "queue": break;
+							case "hangup":
+								switch (AppDomainInitializer:)
+								{
+									default:
+ break;
+								}
+								break;
+							case "queue":
+								string list = "";
+								foreach (var item in Program.CallQueue)
+								{
+									list += "+" + item.number + "\n";
+								}
+								await e.Message.RespondAsync("",false,new DiscordEmbed() { Title = "Queue", Description = list });
+								break;
 						}
 					}
                 }

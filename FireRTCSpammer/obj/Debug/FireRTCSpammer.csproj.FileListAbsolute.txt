@@ -40,3 +40,6 @@ C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireR
 C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.csproj.GenerateResource.Cache
 C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.exe
 C:\Users\Craftplacer\Google Drive\Coding Projects (GitHub)\FireRTC-Spammer\FireRTCSpammer\obj\Debug\FireRTCSpammer.pdb
+\\SERVER\Desktop\New folder\FireRTCSpammer.exe.config
+\\SERVER\Desktop\New folder\FireRTCSpammer.exe
+\\SERVER\Desktop\New folder\FireRTCSpammer.pdb
