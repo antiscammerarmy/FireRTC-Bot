@@ -31,26 +31,26 @@
 			// 
 			// chk_Terms
 			// 
-			this.chk_Terms.Appearance = System.Windows.Forms.Appearance.Button;
 			this.chk_Terms.BackColor = System.Drawing.Color.Transparent;
+			this.chk_Terms.FlatStyle = System.Windows.Forms.FlatStyle.System;
 			this.chk_Terms.Location = new System.Drawing.Point(9, 148);
 			this.chk_Terms.Margin = new System.Windows.Forms.Padding(4);
 			this.chk_Terms.Name = "chk_Terms";
-			this.chk_Terms.Size = new System.Drawing.Size(259, 75);
+			this.chk_Terms.Size = new System.Drawing.Size(259, 59);
 			this.chk_Terms.TabIndex = 15;
 			this.chk_Terms.Text = "I agree that the author is not responsible if my FireRTC account is banned as a r" +
     "esult of this program.";
 			this.chk_Terms.UseVisualStyleBackColor = false;
-			this.chk_Terms.CheckedChanged += new System.EventHandler(this.chk_Terms_CheckedChanged);
+			this.chk_Terms.CheckedChanged += new System.EventHandler(this.Chk_Terms_CheckedChanged);
 			// 
 			// btn_StartSpamming
 			// 
 			this.btn_StartSpamming.Enabled = false;
-			this.btn_StartSpamming.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.btn_StartSpamming.Location = new System.Drawing.Point(8, 231);
+			this.btn_StartSpamming.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.btn_StartSpamming.Location = new System.Drawing.Point(9, 215);
 			this.btn_StartSpamming.Margin = new System.Windows.Forms.Padding(4);
 			this.btn_StartSpamming.Name = "btn_StartSpamming";
-			this.btn_StartSpamming.Size = new System.Drawing.Size(260, 41);
+			this.btn_StartSpamming.Size = new System.Drawing.Size(260, 25);
 			this.btn_StartSpamming.TabIndex = 16;
 			this.btn_StartSpamming.Text = "Start Bot\r\n";
 			this.btn_StartSpamming.UseVisualStyleBackColor = true;
@@ -92,7 +92,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(280, 279);
+			this.ClientSize = new System.Drawing.Size(280, 249);
 			this.Controls.Add(this.chk_Terms);
 			this.Controls.Add(this.btn_StartSpamming);
 			this.Controls.Add(this.txt_Password);
@@ -101,6 +101,7 @@
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.Margin = new System.Windows.Forms.Padding(4);
 			this.MaximizeBox = false;
+			this.MinimizeBox = false;
 			this.Name = "MainForm";
 			this.ShowIcon = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

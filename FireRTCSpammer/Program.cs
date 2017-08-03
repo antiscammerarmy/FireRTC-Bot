@@ -4,6 +4,7 @@ using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Media;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace FireRTCBot
 	
     public partial class Program
     {
+		public static Dictionary<string, SoundPlayer> Soundlist = new Dictionary<string, SoundPlayer>();		
 		#region FireRTC
 		public static ChromeDriver cd;
 		//Hide console stuff.
@@ -36,12 +38,25 @@ namespace FireRTCBot
 		{
 			public MessageCreateEventArgs e;
 			public DiscordMessage msg;
+			public DiscordChannel chnl;
 			public DiscordEmbed embed;
-			public DateTime _start;
+			public DateTime? _start = null;
 			public string number;
 		}
-		public static CallObject CurrentCall;
+		public class CallObjectHistory
+		{
+			public string user;
+			public string chnl;
+			public TimeSpan time;
+			public string number;
+		}
+		public static CallObject _CurrentCall;
+
 		public static List<CallObject> CallQueue = new List<CallObject>();
+		public static List<CallObjectHistory> CallHistory = new List<CallObjectHistory>();
+
+		public static string CallerID = "";
+
 		private static string GenerateReport(Exception ex) => $"Source: {ex.Source}\nMessage: {ex.Message}\nHelpLink: {ex.HelpLink}\nStack Trace =>\n{ex.StackTrace}\n<=\n";
 		public static void Crash(Exception ex, string Application)
 		{
@@ -59,8 +74,6 @@ namespace FireRTCBot
         }
 		public static void InitFireRTC()
 		{
-
-			//Open the main user interface.
 			MainForm mf = new MainForm();
 			mf.ShowDialog();
 
@@ -68,14 +81,15 @@ namespace FireRTCBot
 			tryAuthenticationAgain:
 			cd.Manage().Window.Maximize();
 			//Sign in..
-			#region Auto-Loing
+			#region Auto-Login
 			cd.Url = "https://phone.firertc.com/auth/sign_in";
 			cd.FindElement(By.Id("user_email")).SendKeys(email);
 			cd.FindElement(By.Id("user_password")).SendKeys(password);
 			cd.FindElement(By.Name("commit")).Click();
 			Thread.Sleep(3000);
-#endregion
+			#endregion
 			//After the user has attempted authentication, if the e-mail field to login is still visible, assume we failed the authentication process.
+
 			try
 			{
 				cd.FindElementById("user_email");
@@ -86,8 +100,7 @@ namespace FireRTCBot
 				goto tryAuthenticationAgain;
 			}
 			catch { }
-			startSpam:
-			ChangeNumber();
+			API.ChangeNumber();
 			cd.Url = "https://phone.firertc.com/phone";
 			//If we haven't already told the user to 'Allow' microphone access, tell them.
 			if (!hasAuthenticated)
@@ -124,86 +137,13 @@ namespace FireRTCBot
 			}
 			catch { MessageBox.Show("Couldn't find keypad button!", "", MessageBoxButtons.OK, MessageBoxIcon.Error); return; }
 		}
-		public static void ChangeNumber()
-		{
-			cd.Url = "https://phone.firertc.com/settings";
-			//Wait a little bit and accept the alert that comes up.
-			Thread.Sleep(1000);
-			try { cd.SwitchTo().Alert().Accept(); } catch { } //This is a try-catch because the first call we go through, there will be no alert.
-															  //Generate a random phone number.
-			Random rand = new Random();
-			List<int> randomNumbers = new List<int>();
-			string largeNumber = "";
-			for (int i = 0; i < 10; i++)
-			{
-				if (i == 0)
-				{
-					//Start the first number in the phone number with at least a one. Otherwise, FireRTC will reject the new number.
-					randomNumbers.Add(rand.Next(1, 10));
-				}
-				else
-				{
-					//If the number isn't the first number, add any number, including zero.
-					randomNumbers.Add(rand.Next(0, 10));
-				}
-			}
-			//Form everything together to create our fake phone number.
-			foreach (int i in randomNumbers)
-			{
-				largeNumber += i.ToString();
-			}
-			//Send the spoofed number to FireRTC.
-			cd.FindElement(By.Id("address_ua_config_display_name")).Clear();
-			cd.FindElement(By.Id("address_ua_config_display_name")).SendKeys(largeNumber);
-			var c = cd.FindElements(By.ClassName("form-group"));
-			foreach (IWebElement element in c)
-			{
-				element.Click();
-			}
-			cd.Url = "https://phone.firertc.com/phone";
-		}
-		public static CallResult Call(string number)
-		{
-			try
-			{
-				cd.FindElementById("button_1"); //Check for the keypad number one. If it exists, we have connected to the phone.
-			}
-			catch { return CallResult.FailNotOnline; }
-			number = number.Replace("+","");
-			number = number.Replace("-", "");
-			number = number.Replace(" ", "");
-			//FireRTC wouldn't let us type directly in the phone text field, so this just presses the corresponding numbers on the number pad.
-			foreach (char ch in number)
-			{
-				cd.FindElement(By.Id("button_" + ch)).Click();
-			}
-
-			//Call the victim!
-			var d = cd.FindElements(By.ClassName("btn"));
-			foreach (IWebElement e in d)
-			{
-				if (e.GetAttribute("data-action") == "call")
-				{
-					e.Click();
-					return CallResult.Calling;
-				}
-			}
-			return CallResult.Fail;
-
-		}
-		public enum CallResult
-		{
-			Fail,
-			FailNotOnline,
-			Calling
-		}
+		
 
 
 		public static DiscordClient Client;
 		public async Task RunAsync()
 		{
 			Config.Set();
-
 			#region Init
 			Log(LogType.Normal, "Started", Config.BotName);
 			foreach (string item in new string[] { "error\\" }) { CheckDirectory(item); }
@@ -221,9 +161,12 @@ namespace FireRTCBot
 			});
 			Client.SetWebSocketClient<WebSocket4NetClient>();
 			Log(LogType.Normal, "Bot configured", Config.BotName);
-			//=========================================================
+			foreach (var item in Directory.GetFiles("media\\", "*.wav"))
+			{
+				Soundlist.Add(Path.GetFileNameWithoutExtension(item).ToLower(), new SoundPlayer(item));
+				Log(LogType.Info, "New Sound: " + item, "SoundPlayer");
+			}
 			#endregion Init
-
 			#region Events
 			Client.Ready += async (ReadyEventArgs e) => await Events.Ready(Client, e);
 			Client.MessageCreated += async (e) => await Events.MessageCreated(Client, e);
@@ -240,59 +183,77 @@ namespace FireRTCBot
 			#endregion
 			while (true)
 			{
-				call:
-				while (CurrentCall == null) {}
-				#region MyRegion
-				string embedstatus = "Please wait...";
-				string statusBox = Program.cd.FindElementByClassName("status").Text.ToLower();
-				int status = 0;
-				bool callButtonVisible = false;
-				foreach (IWebElement e2 in Program.cd.FindElements(By.ClassName("btn")))
+				try
 				{
-					if (e2.GetAttribute("data-action") == "call")
+					string embedstatus = "Please wait...";
+					call:
+					await Task.Delay(5000);
+					#region Nullcheck
+					while (_CurrentCall == null)
 					{
-						callButtonVisible = true;
-						break;
+						if (CallQueue.Count != 0)
+						{
+							_CurrentCall = CallQueue[0];
+							API.Call(_CurrentCall.number);
+							CallQueue.Remove(_CurrentCall);
+							_CurrentCall.msg = await _CurrentCall.e.Message.RespondAsync($"Calling next number. **``{CallQueue.Count}``** numbers in queue.", false, _CurrentCall.embed);
+						}
 					}
-				}
-
-				bool hangup = (statusBox.Contains("is online") || callButtonVisible);
-				#endregion
-				if (hangup)
-				{
-					embedstatus = "Hang Up";
-					CurrentCall.embed.Color = 0xf77d65;
-				}
-				else if (statusBox.Contains("speaking"))
-				{
-					embedstatus = "Talking";
-					CurrentCall.embed.Color = 0x00FF00;
-				}
-				else
-				{
-					embedstatus = "Unknown...";
-					CurrentCall.embed.Color = 0x333333;
-				}
-				TimeSpan elapsed = DateTime.Now - CurrentCall._start;
-				CurrentCall.embed.Description = $"**Status:** {embedstatus}\n**Number:** {CurrentCall.number}\n**Elapsed Time:** {elapsed.Minutes.ToString().PadLeft(2)}:{elapsed.Seconds.ToString().PadLeft(2)}";
-				await CurrentCall.msg.EditAsync("", CurrentCall.embed);
-				if (hangup)
-				{
-					if (CallQueue.Count != 0)
+					if (_CurrentCall._start == null)
 					{
-						CurrentCall = CallQueue[0];
-						CallQueue.Remove(CallQueue[0]);
-						await CurrentCall.e.Message.RespondAsync($"**{CallQueue.Count}** numbers in queue.");
+						_CurrentCall._start = DateTime.Now;
 					}
-					else
+					#endregion
+					if (_CurrentCall.msg == null)
 					{
-						CurrentCall = null;
+						_CurrentCall.msg = await _CurrentCall.chnl.SendMessageAsync("", false, _CurrentCall.embed);
+					}
+					switch (API.Status())
+					{
+						case API.FireRTCStatus.Online:
+							embedstatus = "Hang Up";
+							_CurrentCall.embed.Color = 0xf44242;
+							break;
+						case API.FireRTCStatus.Calling:
+							embedstatus = "Calling...";
+							_CurrentCall.embed.Color = 0xf4b841;
+							break;
+						case API.FireRTCStatus.Talking:
+							embedstatus = "Talking";
+							_CurrentCall.embed.Color = 0xaff441;
+							break;
+						case API.FireRTCStatus.Unknown:
+							embedstatus = "Unknown...";
+							_CurrentCall.embed.Color = 0x7e8fb5;
+							break;
+					}
+					var elapsed = ((TimeSpan)(DateTime.Now - _CurrentCall._start));
+					#region Message
+					_CurrentCall.embed.Description = $@"**Status** {embedstatus}
+**Number** {_CurrentCall.number}
+**Elapsed Time** {elapsed.Minutes.ToString().PadLeft(2, '0')}:{elapsed.Seconds.ToString().PadLeft(2, '0')}
+**Queued Numbers** {CallQueue.Count}";
+					await _CurrentCall.msg.EditAsync(_CurrentCall.msg.Content, _CurrentCall.embed);
+					#endregion
+					if (API.Status() == API.FireRTCStatus.Online)
+					{
+						CallHistory.Add(new CallObjectHistory()
+						{
+							chnl = _CurrentCall.e.Channel.Name,
+							number = _CurrentCall.number,
+							time = elapsed,
+							user = _CurrentCall.e.Author.Username
+						});
+						_CurrentCall = null;
 					}
 					goto call;
 				}
-				await Task.Delay(5000);
+				catch (Exception ex)
+				{
+					Crash(ex, "CallSystem");
+				}
+				
 			}
-			
 		}
 		public static async void Shutdown()
 		{
