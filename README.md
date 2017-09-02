@@ -8,7 +8,7 @@ At the first start there should appear a .ini file with the name ``config.ini``,
 [config]
 botowner = [Your Discord ID]
 [token]
-discord = [Bot token of you]
+discord = [Bot token of your bot]
 ```
 ## How can people hear what's going on?
 Well the Bot is like controlling a browser for automatization, you need a secondary discord account and virtual audio cables to forward the audio to discord and back to firertc.
